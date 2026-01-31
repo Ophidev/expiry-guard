@@ -1,28 +1,10 @@
+import useGetProductsByQuery from "../../Hooks/useGetProductsByQuery.jsx";
 
 const ProductsTable = ({products,pageInfo,fetcher}) => {
   
   // console.log("✅ Data from the ProductsTable ", products,pageInfo);
   
-  const getProductsByQuery = ({
-    isPrevious,
-    endCursor,
-    startCursor
-  }) => {
-    fetcher.submit({
-      actionType: "getProducts",
-      getProducts: {
-        endCursor,
-        startCursor,
-        isPrevious,
-        pageSize: 10,
-      }, 
-    },
-    {
-      method: "POST",
-      encType: "application/json",
-      action: "/app",
-    }
-  )};
+  const getProductsByQuery = useGetProductsByQuery(fetcher);
 
   const handleNextPage = () => {
     if(pageInfo?.hasNextPage) {
