@@ -1,31 +1,13 @@
 import useGetProductsByQuery from "../../Hooks/useGetProductsByQuery.jsx";
+import useProductsPagination from "../../Hooks/useProductsPagination.jsx";
 
 const ProductsTable = ({products,pageInfo,fetcher}) => {
   
   // console.log("✅ Data from the ProductsTable ", products,pageInfo);
   
   const getProductsByQuery = useGetProductsByQuery(fetcher);
-
-  const handleNextPage = () => {
-    if(pageInfo?.hasNextPage) {
-      getProductsByQuery({
-        isPrevious: false,
-        endCursor: pageInfo?.endCursor,
-        startCursor: pageInfo?.startCursor,
-      });
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if(pageInfo?.hasPreviousPage) {
-      getProductsByQuery({
-        isPrevious: true,
-        endCursor: pageInfo?.endCursor,
-        startCursor: pageInfo?.startCursor,
-      });
-    }
-  };
-
+  const {handleNextPage, handlePreviousPage} = useProductsPagination(pageInfo, getProductsByQuery);
+  
   return (
     <s-section padding="none" accessibilityLabel="Puzzles table section">
       <s-table 
