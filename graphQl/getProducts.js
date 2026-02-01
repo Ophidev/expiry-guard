@@ -36,8 +36,15 @@ query GetProducts(
   $last: Int
   $after: String
   $before: String
+  $query: String
 ) {
-  products(first: $first, last: $last, after: $after, before: $before) {
+  products(
+    first: $first, 
+    last: $last, 
+    after: $after, 
+    before: $before,
+    query: $query
+  ) {
     edges {
       cursor
       node {
@@ -79,12 +86,13 @@ export async function getProductsByQuery ({
   endCursor,
   startCursor,
   isPrevious,
-  pageSize
+  pageSize,
+  searchText,
 }) {
 
   const variables = isPrevious
-    ? { last: pageSize, before: startCursor}
-    : {first: pageSize, after: endCursor}
+    ? { last: pageSize, before: startCursor, query: searchText}
+    : {first: pageSize, after: endCursor, query: searchText}
 
   const res = await admin.graphql(getProductQuery, {variables});
   const data = await res.json();

@@ -30,7 +30,7 @@ export async function action ({request}) {
 
   if (actionType === "getProducts") {
     
-    const { endCursor, startCursor, isPrevious, pageSize } = getProducts;
+    const { endCursor, startCursor, isPrevious, pageSize, searchText } = getProducts;
 
     const response = await getProductsByQuery({
       admin,
@@ -38,6 +38,7 @@ export async function action ({request}) {
       startCursor,
       isPrevious,
       pageSize,
+      searchText,
     });
 
     return {

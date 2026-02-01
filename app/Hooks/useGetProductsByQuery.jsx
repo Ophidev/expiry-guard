@@ -1,5 +1,5 @@
 const useGetProductsByQuery = (fetcher) => {
-  const getProductsByQuery = ({ isPrevious, endCursor, startCursor }) => {
+  const getProductsByQuery = ({ isPrevious, endCursor, startCursor,searchText }) => {
     fetcher.submit(
       {
         actionType: "getProducts",
@@ -8,6 +8,7 @@ const useGetProductsByQuery = (fetcher) => {
           startCursor,
           isPrevious,
           pageSize: 10,
+          searchText,
         },
       },
       {

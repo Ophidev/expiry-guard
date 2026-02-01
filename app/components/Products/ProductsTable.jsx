@@ -1,5 +1,7 @@
+import { useRef, useState } from "react";
 import useGetProductsByQuery from "../../Hooks/useGetProductsByQuery.jsx";
 import useProductsPagination from "../../Hooks/useProductsPagination.jsx";
+import useDebouncedProductSearch from "../../Hooks/useDebouncedProductSearch.jsx";
 
 const ProductsTable = ({products,pageInfo,fetcher}) => {
   
@@ -7,7 +9,8 @@ const ProductsTable = ({products,pageInfo,fetcher}) => {
   
   const getProductsByQuery = useGetProductsByQuery(fetcher);
   const {handleNextPage, handlePreviousPage} = useProductsPagination(pageInfo, getProductsByQuery);
-  
+  const {searchText,handleSearchQuery} = useDebouncedProductSearch(getProductsByQuery);
+
   return (
     <s-section padding="none" accessibilityLabel="Puzzles table section">
       <s-table 
@@ -23,6 +26,8 @@ const ProductsTable = ({products,pageInfo,fetcher}) => {
             labelAccessibilityVisibility="exclusive"
             icon="search"
             placeholder="Searching all products"
+            value={searchText}
+            onInput={(e) => handleSearchQuery(e.target.value)}
           />
         </s-grid>
         <s-table-header-row>
