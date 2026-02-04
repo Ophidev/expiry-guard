@@ -1,19 +1,21 @@
-import { useRef, useState } from "react";
 import useGetProductsByQuery from "../../Hooks/useGetProductsByQuery.jsx";
 import useProductsPagination from "../../Hooks/useProductsPagination.jsx";
 import useDebouncedProductSearch from "../../Hooks/useDebouncedProductSearch.jsx";
 
-const ProductsTable = ({products,pageInfo,fetcher}) => {
-  
+const ProductsTable = ({ products, pageInfo, fetcher }) => {
   // console.log("✅ Data from the ProductsTable ", products,pageInfo);
-  
+
   const getProductsByQuery = useGetProductsByQuery(fetcher);
-  const {handleNextPage, handlePreviousPage} = useProductsPagination(pageInfo, getProductsByQuery);
-  const {searchText,handleSearchQuery} = useDebouncedProductSearch(getProductsByQuery);
+  const { handleNextPage, handlePreviousPage } = useProductsPagination(
+    pageInfo,
+    getProductsByQuery,
+  );
+  const { searchText, handleSearchQuery } =
+    useDebouncedProductSearch(getProductsByQuery);
 
   return (
-    <s-section padding="none" accessibilityLabel="Puzzles table section">
-      <s-table 
+    <s-section padding="none" accessibilityLabel="products table section">
+      <s-table
         paginate
         hasNextPage={pageInfo?.hasNextPage}
         hasPreviousPage={pageInfo?.hasPreviousPage}
@@ -32,36 +34,40 @@ const ProductsTable = ({products,pageInfo,fetcher}) => {
         </s-grid>
         <s-table-header-row>
           <s-table-header listSlot="primary">products</s-table-header>
-          <s-table-header listSlot="secondary">Status</s-table-header>
+          <s-table-header listSlot="labeled">Expire Date</s-table-header>
         </s-table-header-row>
         <s-table-body>
-          {
-            products?.map((product) => (
-            <s-table-row clickDelegate="mountain-view-checkbox" key={product?.node?.id}>
-            <s-table-cell>
-              <s-stack direction="inline" gap="small" alignItems="center">
-                <s-clickable
-                  href
-                  accessibilityLabel="Mountain View puzzle thumbnail"
-                  border="base"
-                  borderRadius="base"
-                  overflow="hidden"
-                  inlineSize="40px"
-                  blockSize="40px"
-                >
-                  <s-image
-                    objectFit="cover"
-                    src={product?.node?.featuredImage?.src}
-                  />
-                </s-clickable>
-                <s-link href="">{product?.node?.title}</s-link>
-              </s-stack>
-            </s-table-cell>
-            <s-table-cell>
-              <s-badge color="base" tone="success">
-                Active
-              </s-badge>
-            </s-table-cell>
+          {products?.map((product) => (
+            <s-table-row  key={product?.node?.id}>
+              {console.log(`✅ : ${product?.node?.id?.split("/").pop()}`)}
+              <s-table-cell>
+                <s-stack direction="inline" gap="small" alignItems="center">
+                  <s-box
+                    id="product-link"
+                    accessibilityLabel="products thumbnail"
+                    border="base"
+                    borderRadius="base"
+                    overflow="hidden"
+                    inlineSize="40px"
+                    blockSize="40px"
+                  >
+                    <s-image
+                      objectFit="cover"
+                      src={product?.node?.featuredImage?.src}
+                    />
+                  </s-box>
+                  <s-text>
+                    {product?.node?.title}
+                  </s-text>
+                </s-stack>
+              </s-table-cell>
+              <s-table-cell>
+                <s-button 
+                    href={`/app/products/${product?.node?.id?.split("/").pop()}`}
+                  >
+                  Add Expiry date
+                </s-button>
+              </s-table-cell>
             </s-table-row>
           ))}
         </s-table-body>
