@@ -31,36 +31,42 @@
 // `;
 
 const getProductQuery = `
-query GetProducts(
-  $first: Int
-  $last: Int
-  $after: String
-  $before: String
-  $query: String
-) {
-  products(
-    first: $first, 
-    last: $last, 
-    after: $after, 
-    before: $before,
-    query: $query
+  query GetProducts(
+    $first: Int
+    $last: Int
+    $after: String
+    $before: String
+    $query: String
   ) {
-    edges {
-      cursor
-      node {
-        id
-        title
-        featuredImage { src }
+    products(
+      first: $first
+      last: $last
+      after: $after
+      before: $before
+      query: $query
+    ) {
+      edges {
+        cursor
+        node {
+          id
+          title
+          featuredImage {
+            src
+          }
+          metafield(namespace: "expiry_guard", key: "expiry_date") {
+            value
+            type
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        endCursor
+        startCursor
       }
     }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      endCursor
-      startCursor
-    }
   }
-}
 `;
 
 
@@ -91,8 +97,8 @@ export async function getProductsByQuery ({
 }) {
 
   const variables = isPrevious
-    ? { last: pageSize, before: startCursor, query: searchText}
-    : {first: pageSize, after: endCursor, query: searchText}
+    ? { last: pageSize, before: startCursor, query: searchText }
+    : { first: pageSize, after: endCursor, query: searchText }
 
   const res = await admin.graphql(getProductQuery, {variables});
   const data = await res.json();

@@ -17,22 +17,27 @@ mutation SetProductExpiry($metafields: [MetafieldsSetInput!]!) {
 }
 `;
 
-const setProductExpiryMutation = async ({admin, productId, expiryDate}) => {
+export const setProductExpiryMutation = async ({admin, productId, expiryDate}) => {
     
     const variables = {
-        metafields: [
-            {
-                ownerId: productId,
-                namespace: "expiry_guard",
-                key: "expiry_date",
-                type: "date",
-                value: expiryDate
-            }
-        ]
+      metafields: [
+        {
+          ownerId: productId,
+          namespace: "expiry_guard",
+          key: "expiry_date",
+          type: "date",
+          value: expiryDate
+        }
+      ]
     }
 
     const res = await admin.graphql(productExpiryMetafieldMutation, {variables});
-    const data = await res.json();
+    const json = await res.json();
 
-    console.log(data);
+    const result = json.data.metafieldsSet;
+
+    if (result.userErrors.length > 0) {
+      throw new Error(result.userErrors[0].message);
+    }
+    return {message : "Expiry Date added"};
 };

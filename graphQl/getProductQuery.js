@@ -1,23 +1,28 @@
 const getProductByIdQuery = `
-    query GetProductById($productId: ID!) {
-        product(id: $productId) {
-            title
-            totalInventory
-        featuredImage {
-            src
-        }
-        }
+  query GetProductById($productId: ID!) {
+    product(id: $productId) {
+      id
+      title
+      totalInventory
+      featuredImage {
+        src
+      }
+      metafield(namespace: "expiry_guard", key: "expiry_date") {
+        value
+        type
+      }
     }
+  }
 `;
 
-export async function getProductById ({ admin, productId }) {
+export async function getProductById({ admin, productId }) {
   const res = await admin.graphql(getProductByIdQuery, {
     variables: {
-      productId: productId,
+      productId: `gid://shopify/Product/${productId}`,
     },
   });
+
   const data = await res.json();
 
-  console.log("✅ data from getProductById : ", data);
-  return null
-};
+  return data?.data?.product;
+}

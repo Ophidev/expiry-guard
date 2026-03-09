@@ -26,11 +26,13 @@ export const loader = async ({ request }) => {
 export async function action ({request}) {
   const { admin } = await authenticate.admin(request);
 
-  const { actionType, getProducts } = await request.json();
+  const data = await request.json();
+
+  const { actionType } = data;
 
   if (actionType === "getProducts") {
     
-    const { endCursor, startCursor, isPrevious, pageSize, searchText } = getProducts;
+    const { endCursor, startCursor, isPrevious, pageSize, searchText } = data?.getProductsArgs;
 
     const response = await getProductsByQuery({
       admin,

@@ -3,7 +3,7 @@ const useGetProductsByQuery = (fetcher) => {
     fetcher.submit(
       {
         actionType: "getProducts",
-        getProducts: {
+        getProductsArgs: {
           endCursor,
           startCursor,
           isPrevious,
