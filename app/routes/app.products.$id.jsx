@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { authenticate } from "../shopify.server";
 
-import { getProductById } from "../../graphQl/getProductQuery.js"; 
-import { useFetcher, useLoaderData } from "react-router";
-import { setProductExpiryMutation } from "../../graphQl/productExpiryMetafield.js"
+import { getProductById } from "../../graphQl/getProductQuery.js";
+import { useFetcher, useLoaderData, useOutletContext } from "react-router";
+import { setProductExpiryMutation } from "../../graphQl/productExpiryMetafield.js";
 
-//  LOADER
+// LOADER
 export const loader = async ({ request, params }) => {
-
   const { admin } = await authenticate.admin(request);
   const productId = params.id;
 
@@ -16,115 +15,155 @@ export const loader = async ({ request, params }) => {
   return { productData };
 };
 
-//  ACTION
-export const action = async ({ request, params }) => {
+// ACTION
+export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
 
-  const data = await request.json();
+  const formData = await request.formData();
 
-  const { actionType } = data;
+  const actionType = formData.get("actionType");
 
   if (actionType === "addExpiryDateToProduct") {
+    const productId = formData.get("productId");
+    const expiryDate = formData.get("expiryDate");
 
-    const { productId, expiryDate } = data;
-    
-   const res = await setProductExpiryMutation({
+    await setProductExpiryMutation({
       admin,
       productId,
-      expiryDate
+      expiryDate,
     });
-
-    console.log("☀️ setProductExpiryMutation : "+ res);
   }
 
-  return null;
+  return { success: true };
 };
 
-//  COMPONENT
-export default function CollectionPage() {
-
+// COMPONENT
+export default function ProductPage() {
   const fetcher = useFetcher();
   const { productData } = useLoaderData();
-  const [expiryDate, setExpiryDate] = useState(productData?.metafield?.value || "");
+
+  const { saveBarId, discardButtonId } = useOutletContext();
+
+  const [expiryDate, setExpiryDate] = useState(
+    productData?.metafield?.value || "",
+  );
+
   const [error, setError] = useState("");
 
+  const [hasChanges, setHasChanges] = useState(false);
+  const [backupDate, setBackupDate] = useState(
+    productData?.metafield?.value || "",
+  );
+
+  // Handle date change
   const handleDataPicker = (event) => {
     const value = event.currentTarget.value;
     setExpiryDate(value);
 
-    if(!value) {
+    if (!value) {
       setError("Expiry date is required");
     } else {
       setError("");
     }
-  }
+  };
 
+  // Save button (MAIN ACTION)
   const handleSaveExpiryDate = () => {
-
     fetcher.submit(
       {
         actionType: "addExpiryDateToProduct",
         productId: productData?.id,
-        expiryDate
+        expiryDate,
       },
-      { 
-        method: "POST",
-        encType: "application/json",
-      }
+      { method: "POST" }
     );
-
   };
 
+  // Discard (reset)
+  const handleDiscard = () => {
+    setExpiryDate(backupDate);
+    setError("");
+    shopify.saveBar.hide(saveBarId);
+  };
+
+  // Detect changes
+  useEffect(() => {
+    const changed = expiryDate !== backupDate;
+    setHasChanges(changed);
+  }, [expiryDate, backupDate]);
+
+  // Show/hide SaveBar (indicator only)
+  useEffect(() => {
+    if (hasChanges) {
+      shopify.saveBar.show(saveBarId);
+    } else {
+      shopify.saveBar.hide(saveBarId);
+    }
+  }, [hasChanges]);
+
+  // After save → toast + reset state
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.success) {
+      shopify.toast.show("Expiry date saved");
+
+      setBackupDate(expiryDate); // update backup
+      shopify.saveBar.hide(saveBarId);
+    }
+  }, [fetcher.state, fetcher.data]);
+
   return (
-    <s-page >
-        <s-section>
-            <s-grid 
-              gridTemplateColumns="repeat(2, 1fr)" 
-              gap="small"
-              padding="small"
-            >
-              <s-grid-item>
-                <s-image 
-                  src={productData?.featuredImage?.src}
-                />
-              </s-grid-item>
+    <s-page heading="Product">
+      <s-link href="/app/products" slot="breadcrumb-actions">Products</s-link>
+      {/* SAVE BAR (Indicator only) */}
+      <ui-save-bar id={saveBarId}>
+        <button id={discardButtonId} onClick={handleDiscard}>
+          Discard
+        </button>
+      </ui-save-bar>
 
-              <s-grid-item>
-                <s-stack  alignItems="center" gap="small-small" blockSize="100%">
-                  <s-heading>Title : {productData?.title}</s-heading>
-                  <s-heading>Total Inventory : {productData?.totalInventory}</s-heading>
+      <s-section>
+        <s-grid
+          gridTemplateColumns="repeat(2, 1fr)"
+          gap="small"
+          padding="small"
+        >
+          <s-grid-item>
+            <s-image src={productData?.featuredImage?.src} />
+          </s-grid-item>
 
-                  <s-box padding="small">
-                    <s-text>set Expiry date</s-text>
-                  </s-box>
+          <s-grid-item>
+            <s-stack alignItems="center" gap="small-small" blockSize="100%">
+              <s-heading>Title : {productData?.title}</s-heading>
+              <s-heading>
+                Total Inventory : {productData?.totalInventory}
+              </s-heading>
 
-                  <s-box padding="small" border="base">
-                    
-                    <s-stack direction="inline" gap="small" alignItems="end">
+              <s-box padding="small">
+                <s-text>Set Expiry Date</s-text>
+              </s-box>
 
-                      <s-date-field
-                        label="Expiry Date"
-                        name="expiryDate"
-                        value={expiryDate}
-                        disallow="past"
-                        required
-                        error={error}
-                        onChange={(event) => handleDataPicker(event)}
-                      />
+              <s-box padding="small" border="base">
+                <s-stack direction="inline" gap="small" alignItems="end">
+                  <s-date-field
+                    label="Expiry Date"
+                    name="expiryDate"
+                    value={expiryDate}
+                    disallow="past"
+                    required
+                    error={error}
+                    onChange={handleDataPicker}
+                  />
 
-                        <s-box>
-                          <s-button 
-                            onClick={handleSaveExpiryDate}
-                          >Save Expiry Date</s-button>
-                        </s-box>
-
-                      </s-stack>
-
-                  </s-box>
+                  {/* MAIN SAVE BUTTON */}
+                  <s-button onClick={handleSaveExpiryDate}>
+                    Save Expiry Date
+                  </s-button>
                 </s-stack>
-              </s-grid-item>
-            </s-grid>
-        </s-section>
+              </s-box>
+            </s-stack>
+          </s-grid-item>
+        </s-grid>
+      </s-section>
     </s-page>
   );
 }

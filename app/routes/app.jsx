@@ -7,23 +7,26 @@ import { getProductsByQuery } from "../../graphQl/getProducts.js";
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
 
-    const { products, pageInfo } = await getProductsByQuery({
+  const { products, pageInfo } = await getProductsByQuery({
     admin,
     endCursor: null,
     startCursor: null,
     isPrevious: false,
     pageSize: 10,
-    });
+  });
 
   // eslint-disable-next-line no-undef
-  return { 
-    apiKey: process.env.SHOPIFY_API_KEY || "", 
-    products, 
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    products,
     pageInfo,
+    saveBarId: "expiry-guard-savebar",
+    saveButtonId: "expiry-guard-save-button",
+    discardButtonId: "expiry-guard-discard-button",
   };
 };
 
-export async function action ({request}) {
+export async function action({ request }) {
   const { admin } = await authenticate.admin(request);
 
   const data = await request.json();
@@ -31,8 +34,8 @@ export async function action ({request}) {
   const { actionType } = data;
 
   if (actionType === "getProducts") {
-    
-    const { endCursor, startCursor, isPrevious, pageSize, searchText } = data?.getProductsArgs;
+    const { endCursor, startCursor, isPrevious, pageSize, searchText } =
+      data?.getProductsArgs;
 
     const response = await getProductsByQuery({
       admin,
@@ -50,10 +53,18 @@ export async function action ({request}) {
   }
 
   return {};
-};
+}
 
 export default function App() {
-  const { apiKey, products, pageInfo } = useLoaderData();
+  const {
+    apiKey,
+    products,
+    pageInfo,
+    saveBarId,
+    saveButtonId,
+    discardButtonId,
+  } = useLoaderData();
+
   const fetcher = useFetcher();
 
   return (
@@ -67,6 +78,9 @@ export default function App() {
           products,
           pageInfo,
           fetcher,
+          saveBarId,
+          saveButtonId,
+          discardButtonId,
         }}
       />
     </AppProvider>
