@@ -41,3 +41,32 @@ export const setProductExpiryMutation = async ({admin, productId, expiryDate}) =
     }
     return {message : "Expiry Date added"};
 };
+
+export const setProductClearanceOfferMutation = async ({
+  admin,
+  productId,
+  offer,
+}) => {
+  const variables = {
+    metafields: [
+      {
+        ownerId: productId,
+        namespace: "expiry_guard",
+        key: "clearance_offer",
+        type: "json",
+        value: JSON.stringify(offer),
+      },
+    ],
+  };
+
+  const res = await admin.graphql(productExpiryMetafieldMutation, { variables });
+  const json = await res.json();
+
+  const result = json.data.metafieldsSet;
+
+  if (result.userErrors.length > 0) {
+    throw new Error(result.userErrors[0].message);
+  }
+
+  return { message: "Clearance offer saved" };
+};
