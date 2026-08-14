@@ -57,6 +57,10 @@ const getProductQuery = `
             value
             type
           }
+          clearanceOffer: metafield(namespace: "expiry_guard", key: "clearance_offer") {
+            value
+            type
+          }
         }
       }
       pageInfo {
@@ -107,4 +111,4 @@ export async function getProductsByQuery ({
     products: data?.data?.products?.edges,
     pageInfo: data?.data?.products?.pageInfo,
   }
-};
+}

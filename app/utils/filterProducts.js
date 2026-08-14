@@ -9,7 +9,7 @@ export const filterProducts = (products, statusFilter, orderBy) => {
     filteredProducts = filteredProducts.filter((product) => {
       const expiryDate = product?.node?.metafield?.value;
 
-      const status = getExpiryStatus(expiryDate).label;
+      const status = getExpiryStatus(expiryDate).state;
 
       return status?.toLowerCase() === statusFilter?.toLowerCase();
     });
